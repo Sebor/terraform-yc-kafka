@@ -50,7 +50,7 @@ resource "yandex_mdb_kafka_cluster" "this" {
     }
 
     dynamic "zookeeper" {
-      for_each = var.zookeeper_config
+      for_each = length(var.cluster_zones) > 1 ? var.zookeeper_config : {}
 
       content {
         resources {
@@ -121,7 +121,7 @@ resource "yandex_mdb_kafka_user" "this" {
 }
 
 resource "yandex_dns_recordset" "this" {
-  count = var.cluster_kafka_cname != null && var.internal_dns_zone_id != null && var.internal_dns_zone_name != null ? length(var.cluster_subnet_ids) : 0
+  count = var.cluster_kafka_cname != null && var.internal_dns_zone_id != null && var.internal_dns_zone_name != null ? length(var.cluster_zones) : 0
 
   zone_id = var.internal_dns_zone_id
   name    = "${var.cluster_kafka_cname}-${count.index}.${var.internal_dns_zone_name}."
