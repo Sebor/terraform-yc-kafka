@@ -62,23 +62,6 @@ resource "yandex_mdb_kafka_cluster" "this" {
     }
   }
 
-  dynamic "user" {
-    for_each = var.cluster_users
-
-    content {
-      name     = user.key
-      password = user.value["password"]
-      dynamic "permission" {
-        for_each = try(user.value["permissions"], [])
-
-        content {
-          topic_name = permission.value.topic_name
-          role       = permission.value.role
-        }
-      }
-    }
-  }
-
   dynamic "maintenance_window" {
     for_each = var.cluster_maintenance_windows
 
@@ -117,6 +100,22 @@ resource "yandex_mdb_kafka_topic" "this" {
       min_insync_replicas   = lookup(each.value["config"], "min_insync_replicas", null)
       segment_bytes         = lookup(each.value["config"], "segment_bytes", null)
       preallocate           = lookup(each.value["config"], "preallocate", null)
+    }
+  }
+}
+
+resource "yandex_mdb_kafka_user" "this" {
+  for_each = var.cluster_users
+
+  cluster_id = yandex_mdb_kafka_cluster.this.id
+  name       = each.key
+  password   = each.value["password"]
+  dynamic "permission" {
+    for_each = try(each.value["permissions"], [])
+
+    content {
+      topic_name = permission.value.topic_name
+      role       = permission.value.role
     }
   }
 }
