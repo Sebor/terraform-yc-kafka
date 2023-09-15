@@ -52,7 +52,7 @@ variable "cluster_zones" {
 
 variable "cluster_assign_public_ip" {
   type        = bool
-  default     = false
+  default     = null
   description = "Determines whether each broker will be assigned a public IP address. The default is false"
 }
 
@@ -64,13 +64,13 @@ variable "cluster_deletion_protection" {
 
 variable "cluster_unmanaged_topics" {
   type        = bool
-  default     = false
+  default     = null
   description = "Allows to use Kafka AdminAPI to manage topics. The default is false"
 }
 
 variable "cluster_schema_registry" {
   type        = bool
-  default     = false
+  default     = null
   description = "Enables managed schema registry on cluster. The default is false"
 }
 
@@ -82,13 +82,13 @@ variable "cluster_maintenance_window" {
 
 variable "cluster_brokers_count" {
   type        = number
-  default     = 1
+  default     = null
   description = "Count of brokers per availability zone. The default is 1"
 }
 
 variable "cluster_security_group_ids" {
   type        = list(string)
-  default     = []
+  default     = null
   description = "List of security group IDs to be assigned to cluster"
 }
 
@@ -218,6 +218,6 @@ variable "internal_dns_zone_name" {
 
 variable "labels" {
   type        = map(any)
-  default     = {}
+  default     = null
   description = "A set of key/value label pairs to assign to the Kubernetes cluster resources"
 }

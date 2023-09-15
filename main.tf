@@ -50,30 +50,13 @@ resource "yandex_mdb_kafka_cluster" "this" {
     }
 
     dynamic "zookeeper" {
-      for_each = var.zookeeper_config
+      for_each = length(var.cluster_zones) > 1 ? var.zookeeper_config : {}
 
       content {
         resources {
           resource_preset_id = lookup(zookeeper.value, "resource_preset_id", "s2.micro")
           disk_type_id       = lookup(zookeeper.value, "disk_type_id", "network-ssd")
           disk_size          = lookup(zookeeper.value, "disk_size", 10)
-        }
-      }
-    }
-  }
-
-  dynamic "user" {
-    for_each = var.cluster_users
-
-    content {
-      name     = user.key
-      password = user.value["password"]
-      dynamic "permission" {
-        for_each = try(user.value["permissions"], [])
-
-        content {
-          topic_name = permission.value.topic_name
-          role       = permission.value.role
         }
       }
     }
@@ -121,8 +104,24 @@ resource "yandex_mdb_kafka_topic" "this" {
   }
 }
 
+resource "yandex_mdb_kafka_user" "this" {
+  for_each = var.cluster_users
+
+  cluster_id = yandex_mdb_kafka_cluster.this.id
+  name       = each.key
+  password   = each.value["password"]
+  dynamic "permission" {
+    for_each = try(each.value["permissions"], [])
+
+    content {
+      topic_name = permission.value.topic_name
+      role       = permission.value.role
+    }
+  }
+}
+
 resource "yandex_dns_recordset" "this" {
-  count = var.cluster_kafka_cname != null && var.internal_dns_zone_id != null && var.internal_dns_zone_name != null ? length(var.cluster_subnet_ids) : 0
+  count = var.cluster_kafka_cname != null && var.internal_dns_zone_id != null && var.internal_dns_zone_name != null ? length(var.cluster_zones) : 0
 
   zone_id = var.internal_dns_zone_id
   name    = "${var.cluster_kafka_cname}-${count.index}.${var.internal_dns_zone_name}."
